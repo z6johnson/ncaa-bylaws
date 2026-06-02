@@ -57,11 +57,7 @@ jobs:
           git add data/index.meta.json data/index.vectors.bin data/manifest.json
           git commit -m "chore(data): re-seed Division I Manual index"
           git push -u origin "$branch"
-          gh pr create \
-            --base main \
-            --head "$branch" \
-            --title "Re-seed Division I Manual index" \
-            --body "Automated re-seed triggered from the GitHub Actions UI.
+          body="Automated re-seed triggered from the GitHub Actions UI.
 
           **Reason:** ${REASON}
 
@@ -70,3 +66,18 @@ jobs:
           \`contentSha256\`, \`academicYear\`, and \`chunkCount\` in the manifest look
           right. \`data/index.vectors.bin\` is a binary embedding matrix and won't
           render as a readable diff."
+          # The default GITHUB_TOKEN can only open PRs when the repo setting
+          # "Allow GitHub Actions to create and approve pull requests" is enabled
+          # (Settings -> Actions -> General -> Workflow permissions). If it's off,
+          # gh fails — but the re-seed branch is already pushed, so we fall back to
+          # surfacing the compare URL instead of failing the whole run.
+          if gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Re-seed Division I Manual index" \
+            --body "$body"; then
+            echo "::notice::Opened a re-seed PR for $branch."
+          else
+            url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/main...${branch}?expand=1"
+            echo "::warning::Could not open the PR automatically (GitHub Actions may be blocked from creating PRs). The re-seed branch '$branch' is pushed — open the PR here: $url"
+          fi
