@@ -13,10 +13,10 @@
     "seed:mock": "tsx scripts/seed/build-index.ts --mock --source fixture",
     "seed:check-freshness": "tsx scripts/seed/check-freshness.ts",
     "evals": "tsx evals/run-evals.ts",
-    "test": "node --import tsx --test tests/**/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
-    "next": "15.1.6",
+    "next": "^15.5.19",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
