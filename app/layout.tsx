@@ -15,14 +15,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="min-h-screen flex flex-col">
           <header className="border-b border-gray-3">
             <div className="mx-auto w-full max-w-prose px-4 py-5 flex items-baseline justify-between gap-4">
-              <div>
-                <h1 className="text-title font-semibold text-gray-12 leading-none">
+              <a
+                href="/"
+                aria-label="NCAA Rules Assistant — return to home"
+                className="group rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <h1 className="text-title font-semibold text-gray-12 leading-none group-hover:text-accent transition-colors duration-confirm">
                   NCAA Rules Assistant
                 </h1>
                 <p className="text-meta font-bold uppercase tracking-widest text-gray-7 mt-2">
                   Division I &middot; Research Aid [Beta]
                 </p>
-              </div>
+              </a>
               <span className="text-meta font-bold uppercase tracking-widest text-gray-8">
                 UC San Diego
               </span>
