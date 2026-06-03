@@ -1,13 +1,19 @@
 name: Manual freshness check
 
 # Detects when the NCAA publishes a newer Division I Manual. It does NOT rewrite
-# legal text automatically: on a new manual it fails loudly so a maintainer runs
-# `npm run seed` and reviews the data/index.meta.json diff in a PR.
+# legal text automatically: on a new manual it auto-triggers the manual-seed
+# workflow, which rebuilds the index and opens a PR with the data/ diff for human
+# review. The human review gate is preserved — seed never pushes to main directly.
 
 on:
   schedule:
     - cron: "0 13 * * 1" # weekly, Monday 13:00 UTC
   workflow_dispatch:
+
+# actions:write lets us dispatch the manual-seed workflow when a new manual lands.
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   check:
@@ -20,6 +26,26 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Check for a newer manual
+        id: freshness
         env:
           MANUAL_SOURCE_URL: ${{ secrets.MANUAL_SOURCE_URL }}
-        run: npm run seed:check-freshness
+        run: |
+          set +e
+          npm run seed:check-freshness
+          code=$?
+          set -e
+          # check-freshness exits 2 = new manual, 1 = transient fetch error, 0 = up to date.
+          if [ "$code" -eq 2 ]; then
+            echo "new_manual=true" >> "$GITHUB_OUTPUT"
+          elif [ "$code" -ne 0 ]; then
+            echo "::error::Freshness check failed (exit $code) — likely a transient fetch error."
+            exit "$code"
+          fi
+      - name: Auto-trigger re-seed on a new manual
+        if: steps.freshness.outputs.new_manual == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "::notice::New Division I Manual detected — dispatching manual-seed to build a review PR."
+          gh workflow run manual-seed.yml \
+            -f reason="Auto-triggered by manual-freshness: a newer NCAA Division I Manual was detected."

@@ -37,12 +37,13 @@ export function mockEmbed(texts: string[]): number[][] {
   });
 }
 
-async function hubEmbed(texts: string[]): Promise<number[][]> {
-  const baseUrl = requireEnv("TRITONAI_BASE_URL");
-  const apiKey = requireEnv("TRITONAI_API_KEY");
-  const model = process.env.EMBED_MODEL ?? "api-tgpt-embeddings";
-  const timeoutMs = Number(process.env.MODEL_TIMEOUT_MS ?? 30000);
-
+async function hubEmbedOnce(
+  texts: string[],
+  baseUrl: string,
+  apiKey: string,
+  model: string,
+  timeoutMs: number,
+): Promise<number[][]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -56,7 +57,11 @@ async function hubEmbed(texts: string[]): Promise<number[][]> {
       signal: controller.signal,
     });
     if (!res.ok) {
-      throw new Error(`embeddings hub error ${res.status}: ${await res.text()}`);
+      // 429 (rate limit) and 5xx (server) are transient; tag so the caller retries.
+      const transient = res.status === 429 || res.status >= 500;
+      const err = new Error(`embeddings hub error ${res.status}: ${await res.text()}`);
+      (err as { transient?: boolean }).transient = transient;
+      throw err;
     }
     const json = (await res.json()) as { data: { embedding: number[]; index: number }[] };
     return json.data
@@ -66,6 +71,42 @@ async function hubEmbed(texts: string[]): Promise<number[][]> {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** Is this error worth retrying (timeout / network blip / 429 / 5xx)? */
+function isRetryable(err: unknown): boolean {
+  if (err instanceof Error) {
+    if ((err as { transient?: boolean }).transient) return true;
+    // AbortError = our timeout fired; TypeError = fetch network failure (ECONNRESET, etc).
+    if (err.name === "AbortError" || err.name === "TypeError") return true;
+  }
+  return false;
+}
+
+async function hubEmbed(texts: string[]): Promise<number[][]> {
+  const baseUrl = requireEnv("TRITONAI_BASE_URL");
+  const apiKey = requireEnv("TRITONAI_API_KEY");
+  const model = process.env.EMBED_MODEL ?? "api-tgpt-embeddings";
+  const timeoutMs = Number(process.env.MODEL_TIMEOUT_MS ?? 30000);
+  const maxRetries = Number(process.env.EMBED_MAX_RETRIES ?? 4);
+
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await hubEmbedOnce(texts, baseUrl, apiKey, model, timeoutMs);
+    } catch (err) {
+      lastErr = err;
+      if (attempt === maxRetries || !isRetryable(err)) break;
+      // Exponential backoff with jitter: 1s, 2s, 4s, 8s (+/- up to 1s).
+      const backoff = 1000 * 2 ** attempt + Math.floor(Math.random() * 1000);
+      const reason = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `[embed] batch attempt ${attempt + 1}/${maxRetries + 1} failed (${reason}); retrying in ${backoff}ms`,
+      );
+      await new Promise((r) => setTimeout(r, backoff));
+    }
+  }
+  throw lastErr;
 }
 
 /** Embed a batch of texts. Set `mock` for offline dev/CI. */
