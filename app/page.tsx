@@ -12,6 +12,13 @@ export default function Home() {
   const [result, setResult] = useState<AskResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  function reset() {
+    setQuery("");
+    setPending(false);
+    setResult(null);
+    setError(null);
+  }
+
   async function ask(q?: string) {
     const question = (q ?? query).trim();
     if (!question) return;
@@ -66,6 +73,16 @@ export default function Home() {
         )}
         {result && <AnswerCard result={result} />}
       </div>
+
+      {(result || error) && !pending && (
+        <button
+          type="button"
+          onClick={reset}
+          className="mt-8 text-body font-semibold text-accent hover:underline"
+        >
+          Ask another question
+        </button>
+      )}
     </div>
   );
 }
