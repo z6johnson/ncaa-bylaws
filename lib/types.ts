@@ -38,6 +38,24 @@ export interface Manifest {
   mockEmbeddings?: boolean;
 }
 
+/** Result of the most recent freshness check against the live source manual.
+ *  Persisted to data/freshness.json so the footer can show when the manual was
+ *  last verified current, independent of when the data was last refreshed. */
+export interface Freshness {
+  /** When the live source was last checked against the committed manual. */
+  checkedAt: string;
+  /** Outcome of that check. */
+  result: "up-to-date" | "new-manual-detected";
+  /** True when the live source matched the committed content hash. */
+  matchesCommitted: boolean;
+  /** Content hash of the live source at check time. */
+  liveSha256: string;
+  /** Content hash committed in the manifest at check time. */
+  committedSha256: string;
+  /** What ran the check: the seed pipeline or the scheduled freshness job. */
+  checkedBy: "seed" | "freshness-check";
+}
+
 export type Coverage = "covered" | "partial" | "uncovered";
 
 export interface Citation {

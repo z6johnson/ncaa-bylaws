@@ -11,8 +11,10 @@ on:
   workflow_dispatch:
 
 # actions:write lets us dispatch the manual-seed workflow when a new manual lands.
+# contents:write lets us commit the freshness timestamp (provenance metadata, not
+# legal text) back to the repo so the footer shows when the manual was last checked.
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -40,6 +42,21 @@ jobs:
           elif [ "$code" -ne 0 ]; then
             echo "::error::Freshness check failed (exit $code) — likely a transient fetch error."
             exit "$code"
+          fi
+      - name: Record the freshness check
+        if: always()
+        run: |
+          # check-freshness writes data/freshness.json before signalling its
+          # result. Commit it so the "Manual last checked" date in the footer
+          # reflects this run. Only the timestamp metadata changes here.
+          if [ -n "$(git status --porcelain data/freshness.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add data/freshness.json
+            git commit -m "chore(data): record manual freshness check ($(date -u +%Y-%m-%d))"
+            git push
+          else
+            echo "data/freshness.json unchanged — nothing to record."
           fi
       - name: Auto-trigger re-seed on a new manual
         if: steps.freshness.outputs.new_manual == 'true'
