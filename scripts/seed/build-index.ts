@@ -18,6 +18,7 @@ import { parseManualText, qaCheck } from "./parse-bylaws";
 import { enrich } from "./enrich";
 import { embedChunks } from "./embed";
 import { packVectors } from "../../lib/vectors";
+import { writeFreshness } from "./freshness-record";
 import type { Manifest } from "../../lib/types";
 import {
   SYNTHETIC_MANUAL_TEXT,
@@ -113,7 +114,21 @@ async function main() {
   await writeFile(path.join(dataDir, "index.meta.json"), JSON.stringify(chunks, null, 2));
   await writeFile(path.join(dataDir, "index.vectors.bin"), packVectors(vectors));
   await writeFile(path.join(dataDir, "manifest.json"), JSON.stringify(manifest, null, 2));
-  console.log("[seed] wrote data/index.meta.json, data/index.vectors.bin, data/manifest.json");
+
+  // At seed time the live source was just fetched, so the manual is by
+  // definition current. Record it so the footer's "last checked" date is
+  // populated from the first commit, before any scheduled check has run.
+  await writeFreshness(dataDir, {
+    checkedAt: retrievedAt,
+    result: "up-to-date",
+    matchesCommitted: true,
+    liveSha256: contentSha256,
+    committedSha256: contentSha256,
+    checkedBy: "seed",
+  });
+  console.log(
+    "[seed] wrote data/index.meta.json, data/index.vectors.bin, data/manifest.json, data/freshness.json",
+  );
 }
 
 main().catch((err) => {

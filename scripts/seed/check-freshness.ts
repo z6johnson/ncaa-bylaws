@@ -6,14 +6,30 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fetchManual } from "./fetch-manual";
+import { writeFreshness } from "./freshness-record";
 import type { Manifest } from "../../lib/types";
 
 async function main() {
-  const manifestPath = path.join(process.cwd(), "data", "manifest.json");
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Manifest;
+  const dataDir = path.join(process.cwd(), "data");
+  const manifest = JSON.parse(
+    await readFile(path.join(dataDir, "manifest.json"), "utf8"),
+  ) as Manifest;
 
   const fetched = await fetchManual({});
-  if (fetched.contentSha256 === manifest.contentSha256) {
+  const matches = fetched.contentSha256 === manifest.contentSha256;
+
+  // Record the check before signalling its result, so the committed
+  // data/freshness.json always reflects this run's timestamp.
+  await writeFreshness(dataDir, {
+    checkedAt: new Date().toISOString(),
+    result: matches ? "up-to-date" : "new-manual-detected",
+    matchesCommitted: matches,
+    liveSha256: fetched.contentSha256,
+    committedSha256: manifest.contentSha256,
+    checkedBy: "freshness-check",
+  });
+
+  if (matches) {
     console.log(`[freshness] up to date (sha256 ${manifest.contentSha256.slice(0, 12)})`);
     return;
   }

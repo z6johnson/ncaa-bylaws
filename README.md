@@ -21,7 +21,10 @@ Models run on the TritonAI hub (`gpt-oss-120b` primary, `gpt-5.5` fallback,
 The repo ships with a real, committed index of the **2025-26 Division I Manual**
 (3,256 bylaw chunks), so the app works out of the box once the hub credentials
 are set. Provenance lives in `data/manifest.json` (source URL, content hash,
-academic year, embed model, chunk count). Re-seeding is only needed when the NCAA
+academic year, embed model, chunk count, and `retrievedAt` — when the data was
+last refreshed). `data/freshness.json` records when the live source was last
+checked for a newer manual and whether it still matched. Both dates are surfaced
+in the app footer for transparency. Re-seeding is only needed when the NCAA
 publishes a new manual — see below.
 
 ## Setup
@@ -79,9 +82,17 @@ workflow, which opens a PR with the regenerated index for review.
 ## How it stays current
 
 `npm run seed:check-freshness` compares the live manual's content hash to the
-committed `data/manifest.json`. The weekly `manual-freshness` GitHub Action runs
-it and fails loudly on a new manual so a maintainer re-seeds and reviews the
-`data/index.meta.json` diff in a PR. Legal text is never rewritten automatically.
+committed `data/manifest.json`, recording the result (timestamp + outcome) to
+`data/freshness.json`. The weekly `manual-freshness` GitHub Action runs it,
+commits the updated `data/freshness.json` so the footer's "Manual last checked"
+date stays current, and fails loudly on a new manual so a maintainer re-seeds and
+reviews the `data/index.meta.json` diff in a PR. Legal text is never rewritten
+automatically.
+
+The footer shows both dates side by side: **Data refreshed** (`manifest.retrievedAt`,
+the last re-seed from source) and **Manual last checked** (`freshness.checkedAt`,
+the last freshness comparison), along with the source manual version, effective
+date, indexed bylaw count, and the source PDF's SHA-256 (the version of record).
 
 ## Project layout
 
