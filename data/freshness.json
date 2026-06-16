@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-06-02T21:06:14.862Z",
+  "checkedAt": "2026-06-16T15:48:00.964Z",
   "result": "up-to-date",
   "matchesCommitted": true,
-  "liveSha256": "6559fb8aea13ee0284f9a44e21cbcf6a2f1714ef26fd75ab5d919a9c6820117c",
-  "committedSha256": "6559fb8aea13ee0284f9a44e21cbcf6a2f1714ef26fd75ab5d919a9c6820117c",
-  "checkedBy": "seed"
+  "liveSha256": "d86c24331e4a377ab4d288090067437cb73417817a4986168adbfc00f907e0db",
+  "committedSha256": "d86c24331e4a377ab4d288090067437cb73417817a4986168adbfc00f907e0db",
+  "checkedBy": "freshness-check"
 }
