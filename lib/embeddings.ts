@@ -87,8 +87,14 @@ async function hubEmbed(texts: string[]): Promise<number[][]> {
   const baseUrl = requireEnv("TRITONAI_BASE_URL");
   const apiKey = requireEnv("TRITONAI_API_KEY");
   const model = process.env.EMBED_MODEL ?? "api-tgpt-embeddings";
-  const timeoutMs = Number(process.env.MODEL_TIMEOUT_MS ?? 30000);
-  const maxRetries = Number(process.env.EMBED_MAX_RETRIES ?? 4);
+  // Embed batches (up to 64 bylaw texts) are heavier than a single chat call, so
+  // they get a more generous default timeout than MODEL_TIMEOUT_MS. A seed run
+  // makes ~50 of these back to back; one slow stretch on the hub shouldn't doom
+  // the whole multi-thousand-chunk build, so retries ride out a longer outage.
+  const timeoutMs = Number(
+    process.env.EMBED_TIMEOUT_MS ?? process.env.MODEL_TIMEOUT_MS ?? 60000,
+  );
+  const maxRetries = Number(process.env.EMBED_MAX_RETRIES ?? 6);
 
   let lastErr: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -97,8 +103,10 @@ async function hubEmbed(texts: string[]): Promise<number[][]> {
     } catch (err) {
       lastErr = err;
       if (attempt === maxRetries || !isRetryable(err)) break;
-      // Exponential backoff with jitter: 1s, 2s, 4s, 8s (+/- up to 1s).
-      const backoff = 1000 * 2 ** attempt + Math.floor(Math.random() * 1000);
+      // Exponential backoff with jitter, capped at 30s: 1s, 2s, 4s, 8s, 16s, 30s
+      // (+/- up to 1s). The cap keeps later attempts from waiting minutes while
+      // still spreading retries across a multi-minute hub blip.
+      const backoff = Math.min(1000 * 2 ** attempt, 30_000) + Math.floor(Math.random() * 1000);
       const reason = err instanceof Error ? err.message : String(err);
       console.warn(
         `[embed] batch attempt ${attempt + 1}/${maxRetries + 1} failed (${reason}); retrying in ${backoff}ms`,
