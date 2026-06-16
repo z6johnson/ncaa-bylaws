@@ -12,7 +12,6 @@ interface Health {
   manualVersion: string | null;
   sourceUrl?: string;
   effectiveDate?: string | null;
-  contentSha256?: string;
   retrievedAt?: string;
   chunkCount?: number;
   mockEmbeddings?: boolean;
@@ -94,11 +93,6 @@ export default function FooterStatus() {
             )}
             {typeof health.chunkCount === "number" && (
               <span>{health.chunkCount.toLocaleString()} bylaws indexed</span>
-            )}
-            {health.contentSha256 && (
-              <span className="font-mono" title="SHA-256 of the source PDF (version of record)">
-                sha {health.contentSha256}
-              </span>
             )}
           </div>
         )}
