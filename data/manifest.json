@@ -1,12 +1,12 @@
 {
   "sourceUrl": "https://web3.ncaa.org/lsdbi/reports/getReport/90008",
-  "retrievedAt": "2026-07-30T16:57:28.685Z",
-  "contentSha256": "fbd587cf7295b4e89b34e13be94184b855604144988d18b4a251b04ad67d2370",
+  "retrievedAt": "2026-08-03T15:40:05.071Z",
+  "contentSha256": "67095f0e7237b21e4275623a65bfd88da017ca0041aa378ac7ddaac67139665e",
   "manualTitle": "Division I Manual",
-  "academicYear": "2025-26",
+  "academicYear": "2026-27",
   "embedModel": "api-tgpt-embeddings",
   "embedDim": 1024,
-  "chunkCount": 3338,
-  "buildCommit": "b2b3565",
+  "chunkCount": 3176,
+  "buildCommit": "40bb992",
   "mockEmbeddings": false
 }
