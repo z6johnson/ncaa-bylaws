@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-07-30T17:10:55.173Z",
-  "result": "up-to-date",
-  "matchesCommitted": true,
-  "liveSha256": "fbd587cf7295b4e89b34e13be94184b855604144988d18b4a251b04ad67d2370",
+  "checkedAt": "2026-08-03T15:39:27.050Z",
+  "result": "new-manual-detected",
+  "matchesCommitted": false,
+  "liveSha256": "67095f0e7237b21e4275623a65bfd88da017ca0041aa378ac7ddaac67139665e",
   "committedSha256": "fbd587cf7295b4e89b34e13be94184b855604144988d18b4a251b04ad67d2370",
   "checkedBy": "freshness-check"
 }
