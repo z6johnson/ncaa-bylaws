@@ -28,7 +28,7 @@ export async function GET() {
     tryLoadIndex(),
     tryLoadFreshness(),
   ]);
-  const model = process.env.CHAT_MODEL_PRIMARY ?? "gpt-oss-120b";
+    const model = process.env.CHAT_MODEL_PRIMARY ?? "gemma-4-31b";
   if (!index) {
     return NextResponse.json(
       { seeded: false, model, manualVersion: null },
