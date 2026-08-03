@@ -16,7 +16,7 @@ capability.
   considered but misses paraphrased questions; the model adds plain-language
   synthesis over deterministic retrieval.
 - **Models:**
-  - Chat: `gpt-oss-120b` (primary), `gpt-5.5` (fallback), via TritonAI hub.
+    - Chat: `gemma-4-31b` (primary), `gpt-5.5` (fallback), via TritonAI hub.
   - Embeddings: `api-tgpt-embeddings` via TritonAI hub.
 - **Data classification:** Public NCAA manual text; non-PII rule questions. No
   login, no user identity collected. Queries redacted + truncated before logging.

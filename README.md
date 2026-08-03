@@ -13,7 +13,7 @@ closed set, so it never invents rules or cites. Citations are validated against
 the retrieved set and the verbatim text is re-attached from the corpus, never
 from the model. On a model failure the app degrades to retrieval-only results.
 
-Models run on the TritonAI hub (`gpt-oss-120b` primary, `gpt-5.5` fallback,
+Models run on the TritonAI hub (`gemma-4-31b` primary, `gpt-5.5` fallback,
 `api-tgpt-embeddings` for embeddings).
 
 ## What's in `data/`
