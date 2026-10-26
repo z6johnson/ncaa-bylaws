@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-10-19T18:55:41.236Z",
+  "checkedAt": "2026-10-26T18:58:10.467Z",
   "result": "new-manual-detected",
   "matchesCommitted": false,
-  "liveSha256": "72813162962254ede14743b72ac2660ff8b0b477aa38b7a8e7ab596fdca78b90",
+  "liveSha256": "3eea7500c711c0ba60df3938763d3ec48ca44dc6ca19de290c5b08c6376883b9",
   "committedSha256": "ca9e76baa5f04c7ba07c0929262bdabdab2a878953e9c133d043516dd3b379a9",
   "checkedBy": "freshness-check"
 }
